@@ -1,0 +1,6 @@
+COSAS QUE FALTAN POR HACER:
+
+- Contador de fichas.
+- Comer reyes.
+- Jugada completa con verificaciones.
+- Inteligencia Artificial.
