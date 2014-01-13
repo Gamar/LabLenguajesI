@@ -1,4 +1,4 @@
 LabLenguajesI
 =============
 
-Repositorio de laboratorio de lenguajes. 
+Repositorio de Laboratorio de Lenguajes de Programacion I. 
