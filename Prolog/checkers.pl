@@ -100,22 +100,24 @@ tipoJugador(83,humano,maquina).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %
-% Ejecucion del juego, verifica si el movimiento es posible y lo realiza.
+% Ejecucion del juego, realiza el movimiento si es posible 
 % jugada(in X1,in Y1,in X2,in Y2)
 %
+
 jugada(X1,Y1,X2,Y2) :- 
   inicializado(X),
   %verificarJugada
   jugadorActual(Jugador),
   tableroActual(Tablero),
   mover(Tablero,X1,Y1,X2,Y2,NM),
-  imprimirMov(Jugador),
-  coronar(NM,Jugador,X2,Y2,NuevoTablero),
+  imprimirMov(Jugador,Tablero),
+  %coronar(NM,Jugador,X2,Y2,NuevoTablero),
   %imprimirTablero
   retract(jugadorActual(Jugador)),
   retract(tableroActual(Tablero)),
   cambiarJugador(Jugador,NuevoJugador),
   turno(NuevoTablero,NuevoJugador),!.
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -168,15 +170,184 @@ verificarFicha(Tablero,Jugador,X1,Y1) :-
 verificarPeon(Tablero,X1,Y1,X2,Y2) :- 
   get(Tablero,X1,Y1,Elemento1),
   Elemento1 == 3,
-  X1-X2 =:= 1,
+  X1-X2 =:= 1, %Fichas blancas bajan
   (Y1-Y2 =:= -1;Y1-Y2 =:= 1),!.
  
 %Fichas Negras   
 verificarPeon(Tablero,X1,Y1,X2,Y2) :- 
   get(Tablero,X1,Y1,Elemento1),
   Elemento1 == 1,
-  X1-X2 =:= -1,
+  X1-X2 =:= -1, %Fichas negras suben
   (Y1-Y2 =:= -1;Y1-Y2 =:= 1),!.  
+
+
+%
+% Verifica que el movimiento es valido para un rey.
+% verificarFicha(in Tablero,in Jugador,in X1,in Y1,in X2,in Y2)
+%
+%Fichas Blancas
+verificarRey(Tablero,P,X1,Y1,X2,Y2) :- 
+  get(Tablero,X1,Y1,Ficha),
+  P,
+  Ficha == 4, 
+  abs(X2-X1) =:= abs(Y2-Y1), %Movimiento diagonal 
+  X2 =\= X1, %Realizo un movimiento
+  revisarSalto(Tablero,P,X1,Y1,X2,Y2), %No salto fichas de su mismo color
+  contarComidas(Tablero,P,X1,Y1,X2,Y2,N), %Cuenta fichas comidas
+  (N == 0; %No salto ninguna ficha
+   N == 1),  %Comio una ficha
+  !.
+
+ 
+verificarRey(Tablero,P,X1,Y1,X2,Y2) :- 
+  get(Tablero,X1,Y1,Ficha),
+  not(P),
+  Ficha == 2,
+  abs(X2-X1) =:= abs(Y2-Y1), %Movimiento diagonal 
+  X2 =\= X1, %Realizo un movimiento
+  revisarSalto(Tablero,P,X1,Y1,X2,Y2), %No salto fichas de su mismo color
+  contarComidas(Tablero,P,X1,Y1,X2,Y2,N), %Cuenta fichas comidas
+  write(N),
+  
+  (N == 0; %No salto ninguna ficha
+   N == 1),  %Comio una ficha
+  !.
+
+%%
+%% REVISA SALTOS DE UN REY
+%% NO PUEDE SALTAR FICHAS DE SU MISMO COLOR
+%%
+
+%% Revisa a partir de la siguiente posicion
+%% 
+
+revisarSalto(Tablero,P,X1,Y1,X2,Y2) :-
+  X1 < X2, Y1 < Y2,
+  Xn is X1+1, Yn is Y1+1, 
+  revisarSaltoAux(Tablero,P,Xn,Yn,X2,Y2),!.
+  
+revisarSalto(Tablero,P,X1,Y1,X2,Y2) :-
+  X1 < X2, Y1 > Y2,
+  Xn is X1+1, Yn is Y1-1,
+  revisarSaltoAux(Tablero,P,Xn,Yn,X2,Y2),!.  
+
+revisarSalto(Tablero,P,X1,Y1,X2,Y2) :-
+  X1 > X2, Y1 < Y2,
+  Xn is X1-1, Yn is Y1+1,
+  revisarSaltoAux(Tablero,P,Xn,Yn,X2,Y2),!.
+
+revisarSalto(Tablero,P,X1,Y1,X2,Y2) :-
+  X1 > X2, Y1 > Y2,
+  Xn is X1-1, Yn is Y1-1,
+  revisarSaltoAux(Tablero,P,Xn,Yn,X2,Y2),!.
+
+%% Revisa posiciones saltadas
+
+%Alcanzo la posicion objetivo 
+revisarSaltoAux(_,_,X,Y,X,Y).
+  
+revisarSaltoAux(Tablero,P,X1,Y1,X2,Y2) :-  
+  X1 < X2, Y1 < Y2, 
+  Xn is X1+1, Yn is Y1+1, 
+  get(Tablero,X1,Y1,Ficha),
+  (Ficha == 0; 
+  (P, Ficha =\= 3, Ficha =\= 4);      
+  (not(P), Ficha =\= 1, Ficha =\= 2)),
+  revisarSaltoAux(Tablero,P,Xn,Yn,X2,Y2),!.
+  
+revisarSaltoAux(Tablero,P,X1,Y1,X2,Y2) :-  
+  X1 < X2, Y1 > Y2, 
+  Xn is X1+1, Yn is Y1-1, 
+  get(Tablero,X1,Y1,Ficha),
+  (Ficha == 0; 
+  (P, Ficha =\= 3, Ficha =\= 4);      
+  (not(P), Ficha =\= 1, Ficha =\= 2)),
+  revisarSaltoAux(Tablero,P,Xn,Yn,X2,Y2).
+  
+revisarSaltoAux(Tablero,P,X1,Y1,X2,Y2) :-  
+  X1 > X2, Y1 < Y2, 
+  Xn is X1-1, Yn is Y1+1, 
+  get(Tablero,X1,Y1,Ficha),
+  (Ficha == 0; 
+  (P, Ficha =\= 3, Ficha =\= 4);      
+  (not(P), Ficha =\= 1, Ficha =\= 2)),
+  revisarSaltoAux(Tablero,P,Xn,Yn,X2,Y2).
+
+revisarSaltoAux(Tablero,P,X1,Y1,X2,Y2) :-  
+  X1 > X2, Y1 > Y2, 
+  Xn is X1-1, Yn is Y1-1, 
+  get(Tablero,X1,Y1,Ficha),
+  (Ficha == 0; 
+  (P, Ficha =\= 3, Ficha =\= 4);      
+  (not(P), Ficha =\= 1, Ficha =\= 2)),
+  revisarSaltoAux(Tablero,P,Xn,Yn,X2,Y2).
+
+%Contar fichas saltadas
+
+%Alcanzo la posicion objetivo
+
+contarComidas(Tablero,P,X1,Y1,X2,Y2,N) :-
+  X1 < X2, Y1 < Y2,
+  Xn is X1+1, Yn is Y1+1, 
+  contarComidasAux(Tablero,P,Xn,Yn,X2,Y2,N),!.
+
+contarComidas(Tablero,P,X1,Y1,X2,Y2,N) :-
+  X1 < X2, Y1 > Y2,
+  Xn is X1+1, Yn is Y1-1, 
+  contarComidasAux(Tablero,P,Xn,Yn,X2,Y2,N),!.
+
+contarComidas(Tablero,P,X1,Y1,X2,Y2,N) :-
+  X1 > X2, Y1 < Y2,
+  Xn is X1-1, Yn is Y1+1, 
+  contarComidasAux(Tablero,P,Xn,Yn,X2,Y2,N),!.
+
+contarComidas(Tablero,P,X1,Y1,X2,Y2,N) :-
+  X1 > X2, Y1 > Y2,
+  Xn is X1-1, Yn is Y1-1, 
+  contarComidasAux(Tablero,P,Xn,Yn,X2,Y2,N),!.
+
+contarComidasAux(_,_,X,Y,X,Y,0).
+
+contarComidasAux(Tablero,P,X1,Y1,X2,Y2,N) :-
+  X1 < X2, Y1 < Y2, 
+  Xn is X1+1, Yn is Y1+1, 
+  get(Tablero,X1,Y1,Ficha),
+  ((Ficha == 0, contarComidasAux(Tablero,P,Xn,Yn,X2,Y2,N)); 
+   (P, (Ficha == 1; Ficha == 2),  %Blancas
+    contarComidasAux(Tablero,P,Xn,Yn,X2,Y2,N2), N is N2+1);
+   (not(P), (Ficha == 3; Ficha == 4), %Negras
+    contarComidasAux(Tablero,P,Xn,Yn,X2,Y2,N2), N is N2+1)),!.  
+
+contarComidasAux(Tablero,P,X1,Y1,X2,Y2,N) :-
+  X1 < X2, Y1 > Y2, 
+  Xn is X1+1, Yn is Y1-1, 
+  get(Tablero,X1,Y1,Ficha),
+  ((Ficha == 0, contarComidasAux(Tablero,P,Xn,Yn,X2,Y2,N)); 
+   (P, (Ficha == 1; Ficha == 2),  %Blancas
+    contarComidasAux(Tablero,P,Xn,Yn,X2,Y2,N2), N is N2+1);
+   (not(P), (Ficha == 3; Ficha == 4), %Negras
+    contarComidasAux(Tablero,P,Xn,Yn,X2,Y2,N2), N is N2+1)),!.
+    
+contarComidasAux(Tablero,P,X1,Y1,X2,Y2,N) :-
+  X1 > X2, Y1 < Y2, 
+  Xn is X1-1, Yn is Y1+1, 
+  get(Tablero,X1,Y1,Ficha),
+  ((Ficha == 0, contarComidasAux(Tablero,P,Xn,Yn,X2,Y2,N)); 
+   (P, (Ficha == 1; Ficha == 2),  %Blancas
+    contarComidasAux(Tablero,P,Xn,Yn,X2,Y2,N2), N is N2+1);
+   (not(P), (Ficha == 3; Ficha == 4), %Negras
+    contarComidasAux(Tablero,P,Xn,Yn,X2,Y2,N2), N is N2+1)),!.
+    
+contarComidasAux(Tablero,P,X1,Y1,X2,Y2,N) :-
+  X1 > X2, Y1 > Y2, 
+  Xn is X1-1, Yn is Y1-1, 
+  get(Tablero,X1,Y1,Ficha),
+  ((Ficha == 0, contarComidasAux(Tablero,P,Xn,Yn,X2,Y2,N)); 
+   (P, (Ficha == 1; Ficha == 2),  %Blancas
+    contarComidasAux(Tablero,P,Xn,Yn,X2,Y2,N2), N is N2+1);
+   (not(P), (Ficha == 3; Ficha == 4), %Negras
+    contarComidasAux(Tablero,P,Xn,Yn,X2,Y2,N2), N is N2+1)),!.
+
 
 
 %
@@ -184,14 +355,16 @@ verificarPeon(Tablero,X1,Y1,X2,Y2) :-
 % verificarCoronacion(in Jugador,in X1,in Y1)
 %
 %Fichas Blancas
-verificarCoronacion(Jugador,X1,Y1) :-
+verificarCoronacion(Jugador,X1,_) :-
   Jugador,
   X1 =:= 1,!.
 
 %Fichas Negras    
-verificarCoronacion(Jugador,X1,Y1) :-
+verificarCoronacion(Jugador,X1,_) :-
   not(Jugador),
   X1 =:= 8,!.
+
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -399,6 +572,23 @@ mostrarCaracteres([]).
 mostrarCaracteres([Elemento|Cola]) :-
   write(' |'), escribir(Elemento), write('|'),
   mostrarCaracteres(Cola).
+
+
+%
+%  DEBUGGING BOARD
+%
+
+tableroDebug(
+	[
+	[5,0,5,0,5,0,5,0],
+	[1,5,0,5,1,5,0,5],
+	[5,0,5,3,5,0,5,0],
+	[0,5,0,5,2,5,0,5],
+	[5,0,5,1,5,3,5,0],
+	[0,5,1,5,0,5,0,5],
+	[0,0,5,0,5,0,5,0],
+	[0,5,0,5,0,5,0,5]]).
+
 
 
 % END checkers.pl
