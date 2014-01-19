@@ -165,7 +165,11 @@ verificarJugada(Tablero,Jugador,X1,Y1,X2,Y2) :-
   (%If es un peon
     (verificarPeon(Tablero,X1,Y1,X2,Y2); verificarComidaPeon(Tablero,X1,Y1,X2,Y2))
   ; %es un rey
-    (verificarRey(Tablero,Jugador,X1,Y1,X2,Y2))
+    (verificarRey(Tablero,Jugador,X1,Y1,X2,Y2,N)
+    
+    %Si N es 1 
+    
+    )
   ).
 
 %
@@ -312,7 +316,7 @@ verificarVolverComerPeon(Tablero,X1,Y1) :-
 % verificarRey(in Tablero,in P,in X1,in Y1,in X2,in Y2)
 %
 %Fichas Blancas
-verificarRey(Tablero,P,X1,Y1,X2,Y2) :- 
+verificarRey(Tablero,P,X1,Y1,X2,Y2,N) :- 
   get(Tablero,X1,Y1,Ficha),
   P,
   Ficha == 4, 
@@ -320,12 +324,11 @@ verificarRey(Tablero,P,X1,Y1,X2,Y2) :-
   X2 =\= X1, %Realizo un movimiento
   revisarSalto(Tablero,P,X1,Y1,X2,Y2), %No salto fichas de su mismo color
   contarComidas(Tablero,P,X1,Y1,X2,Y2,N), %Cuenta fichas comidas
-  (N == 0; %No salto ninguna ficha
-   N == 1),  %Comio una ficha
+  (N == 0; N == 1), %No salto mas de dos fichas
   !.
 
 %Fichas Negras
-verificarRey(Tablero,P,X1,Y1,X2,Y2) :- 
+verificarRey(Tablero,P,X1,Y1,X2,Y2,N) :- 
   get(Tablero,X1,Y1,Ficha),
   not(P),
   Ficha == 2,
@@ -333,8 +336,7 @@ verificarRey(Tablero,P,X1,Y1,X2,Y2) :-
   X2 =\= X1, %Realizo un movimiento
   revisarSalto(Tablero,P,X1,Y1,X2,Y2), %No salto fichas de su mismo color
   contarComidas(Tablero,P,X1,Y1,X2,Y2,N), %Cuenta fichas comidas
-  (N == 0; %No salto ninguna ficha
-   N == 1),  %Comio una ficha
+  (N == 0; N == 1), %No salto mas de dos fichas
   !.
 
 %
@@ -538,6 +540,79 @@ comioPeon(Tablero,X1,Y1,X2,Y2,NM) :-
     X2-X1 =:= 2, Y2-Y1 =:= 2,
     eliminarFicha(Tablero,X3,Y3,NM))
   ),!.  
+
+
+comioPeon(Tablero,X1,Y1,X2,Y2,NM) :- 
+  get(Tablero,X1,Y1,Elemento1),
+  Elemento1 == 3,
+  (
+    %Posiblidad izquierda
+    (X3 is X1-1, Y3 is Y1-1,
+    get(Tablero,X3,Y3,Elemento2),
+    (Elemento2 == 1; Elemento2 == 2),
+    X1-X2 =:= 2, Y1-Y2 =:= 2,
+    eliminarFicha(Tablero,X3,Y3,NM))
+    ;
+    %Posiblidad derecha
+    (X3 is X1-1, Y3 is Y1+1,
+    get(Tablero,X3,Y3,Elemento3),
+    (Elemento3 == 1; Elemento3 == 2),
+    X1-X2 =:= 2, Y2-Y1 =:= 2,
+    eliminarFicha(Tablero,X3,Y3,NM))
+  ),!.  
+
+%Fichas Negras    
+
+%Not done yet
+comioRey(Tablero,Jugador,X1,Y1,X2,Y2,NM) :-
+    verificarRey(Tablero,Jugador,X1,Y1,X2,Y2,N),
+    (N == 1; N == 3),
+    obtenerSigPosicion(X1,Y1,X2,Y2,Xn,Yn),
+    buscarComidaRey(Tablero,Xn,Yn,X2,Y2,Xp,Yp),
+    Xp =\= X2, Yp =\= Y2,
+    eliminarFicha(Tablero,Xp,Yp,NM),
+    !.
+    
+    
+%Obtiene la siguiente posicion diagonal
+obtenerSigPosicion(X1,Y1,X2,Y2,X3,Y3) :-
+    X1 < X2, Y1 < Y2,
+    X3 is X1+1, Y3 is Y1+1,!.
+    
+obtenerSigPosicion(X1,Y1,X2,Y2,X3,Y3) :-
+    X1 < X2, Y1 > Y2,
+    X3 is X1+1, Y3 is Y1-1,!.
+    
+obtenerSigPosicion(X1,Y1,X2,Y2,X3,Y3) :-
+    X1 > X2, Y1 < Y2,
+    X3 is X1-1, Y3 is Y1+1,!.    
+    
+obtenerSigPosicion(X1,Y1,X2,Y2,X3,Y3) :-
+    X1 > X2, Y1 > Y2,
+    X3 is X1-1, Y3 is Y1-1,!.    
+
+%Busca la comida de un rey
+
+%Retorna la posicion destino
+%Porque no encontro ficha comida
+buscarComidaRey(Tablero,X,Y,X,Y,X,Y).
+
+%Consiguio la ficha
+buscarComidaRey(Tablero,X1,Y1,X2,Y2,X3,Y3) :-
+    get(Tablero,X1,Y1,Elemento1),
+    Elemento1 =\= 0,
+    X3 is X1, Y3 is Y1,!.
+
+%Paso por una casilla vacia,
+%Busca la siguiente    
+buscarComidaRey(Tablero,X1,Y1,X2,Y2,X3,Y3) :-
+    get(Tablero,X1,Y1,Elemento1),
+    Elemento1 == 0,
+    obtenerSigPosicion(Tablero,X1,Y1,X2,Y2,Xn,Yn),
+    buscarComidaRey(Tablero,Xn,Yn,X2,Y2,X3),!.
+    
+    
+  
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
