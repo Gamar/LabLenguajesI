@@ -311,6 +311,89 @@ verificarVolverComerPeon(Tablero,X1,Y1) :-
 
 
 
+%Obtiene el limite de la primera diagonal
+% |1| | 
+% | |2|
+obtenerLimiteD1(X,Y,Xl,Yl) :-
+  Xn is X + 1,
+  Yn is Y + 1,
+  ((Xn < 8, Yn < 8, obtenerLimiteD1(Xn,Yn,Xl,Yl));
+   ((Xn == 8; Yn == 8), Xl is Xn, Yl is Yn)),!. 
+
+%Obtiene el limite de la segunda diagonal
+% | |1| 
+% |2| |
+obtenerLimiteD2(X,Y,Xl,Yl) :-
+  Xn is X + 1,
+  Yn is Y - 1,
+  ((Xn < 8, Yn > 1, obtenerLimiteD2(Xn,Yn,Xl,Yl));
+   ((Xn == 8; Yn == 1), Xl is Xn, Yl is Yn)),!. 
+
+%Obtiene el limite de la tercera diagonal
+% | |2| 
+% |1| |   
+obtenerLimiteD3(X,Y,Xl,Yl) :-
+  Xn is X - 1,
+  Yn is Y + 1,
+  ((Xn > 1, Yn < 8, obtenerLimiteD3(Xn,Yn,Xl,Yl));
+   ((Xn == 1; Yn == 8), Xl is Xn, Yl is Yn)),!.    
+
+%Obtiene el limite de la cuarta diagonal
+% |2| | 
+% | |1|
+obtenerLimiteD4(X,Y,Xl,Yl) :-
+  Xn is X - 1,
+  Yn is Y - 1,
+  ((Xn > 1, Yn > 1, obtenerLimiteD4(Xn,Yn,Xl,Yl));
+   ((Xn == 1; Yn == 1), Xl is Xn, Yl is Yn)),!. 
+
+verificarVolverComerRey(Tablero,Jugador,X1,Y1) :-
+   ((obtenerLimiteD1(X1,Y1,Xl,Yl),
+   Xl =\= X1, Yl =\= Y1, 
+   obtenerSigPosicion(X1,Y1,Xl,Yl,Xn,Yn),
+   buscarProxComida(Tablero,Jugador,Xn,Yn,Xl,Yl),!);
+   (obtenerLimiteD2(X1,Y1,Xl,Yl),
+   Xl =\= X1, Yl =\= Y1, 
+   obtenerSigPosicion(X1,Y1,Xl,Yl,Xn,Yn),
+   buscarProxComida(Tablero,Jugador,Xn,Yn,Xl,Yl),!);
+   (obtenerLimiteD3(X1,Y1,Xl,Yl),
+   Xl =\= X1, Yl =\= Y1, 
+   obtenerSigPosicion(X1,Y1,Xl,Yl,Xn,Yn),
+   buscarProxComida(Tablero,Jugador,Xn,Yn,Xl,Yl),!);
+   (obtenerLimiteD4(X1,Y1,Xl,Yl),
+   Xl =\= X1, Yl =\= Y1, 
+   obtenerSigPosicion(X1,Y1,Xl,Yl,Xn,Yn),
+   buscarProxComida(Tablero,Jugador,Xn,Yn,Xl,Yl),!)).
+
+%Pasa por una casilla vacia
+buscarProxComida(Tablero,Jugador,X1,Y1,X2,Y2) :-
+    X1 =\= X2, Y1=\= Y2, 
+    get(Tablero,X1,Y1,Elemento1),
+    Elemento1 == 0,
+    obtenerSigPosicion(X1,Y1,X2,Y2,Xn,Yn),
+    buscarProxComida(Tablero,Jugador,Xn,Yn,X2,Y2),!.
+
+%Blancas debe pasar por una negra    
+buscarProxComida(Tablero,Jugador,X1,Y1,X2,Y2) :-
+    X1 =\= X2, Y1=\= Y2, 
+    get(Tablero,X1,Y1,Elemento1),
+    Jugador,(Elemento1 == 1; Elemento1 == 2),
+    obtenerSigPosicion(X1,Y1,X2,Y2,Xn,Yn),
+    get(Tablero,Xn,Yn,Elemento2),
+    Elemento2 == 0, %Sig casilla debe ser vacia
+    !.
+    
+%Negras debe pasar por una blanca
+buscarProxComida(Tablero,Jugador,X1,Y1,X2,Y2) :-
+    X1 =\= X2, Y1 =\= Y2, 
+    get(Tablero,X1,Y1,Elemento1),
+    not(Jugador), (Elemento1 == 3; Elemento1 == 4),
+    obtenerSigPosicion(X1,Y1,X2,Y2,Xn,Yn),
+    get(Tablero,Xn,Yn,Elemento2),
+    Elemento2 == 0, %Sig casilla debe ser vacia
+    !.
+
+
 %
 % Verifica que el movimiento es valido para un rey.
 % verificarRey(in Tablero,in P,in X1,in Y1,in X2,in Y2)
@@ -793,11 +876,11 @@ mostrarCaracteres([Elemento|Cola]) :-
 tableroDebug(
 	[
 	[5,0,5,0,5,0,5,0],
-	[1,5,0,5,1,5,0,5],
-	[5,0,5,3,5,0,5,0],
-	[0,5,0,5,2,5,0,5],
+	[1,5,3,5,1,5,1,5],
 	[5,0,5,1,5,3,5,0],
-	[0,5,1,5,0,5,0,5],
+	[0,5,0,5,2,5,0,5],
+	[5,0,5,4,5,0,5,0],
+	[0,5,0,5,0,5,1,5],
 	[0,0,5,0,5,0,5,0],
 	[0,5,0,5,0,5,0,5]]).
 
