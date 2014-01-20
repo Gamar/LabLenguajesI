@@ -1,7 +1,7 @@
 COSAS QUE FALTAN POR HACER:
 
 - Contador de fichas -> finalice el juego cuando ya no tenga fichas.
-- Jugada completa con verificaciones -> las fichas se eliminen cuando come el rey.
+
 - Inteligencia Artificial.
 
 - Comentarios procedimientos.

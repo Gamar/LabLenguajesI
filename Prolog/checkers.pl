@@ -108,48 +108,68 @@ jugada(X1,Y1,X2,Y2) :-
   jugadorActual(Jugador),
   tableroActual(Tablero),
   verificarJugada(Tablero,Jugador,X1,Y1,X2,Y2),
-  %Verifica si el peon ya comio
-  ((comioPeon(Tablero,X1,Y1,X2,Y2,TableroActual), 
-    mover(TableroActual,X1,Y1,X2,Y2,NuevoTablero))
-  ;
-  (not(comioPeon(Tablero,X1,Y1,X2,Y2,TableroActual)), 
-    mover(Tablero,X1,Y1,X2,Y2,NuevoTablero))),
-  
 
-  %Verifica si el peon se corona
   (
-    (coronar(NuevoTablero,Jugador,X2,Y2,NM), 
-      imprimirMov(Jugador,NM),
-      retract(jugadorActual(Jugador)),
-      retract(tableroActual(Tablero)),
+    ((comioPeon(Tablero,X1,Y1,X2,Y2,TableroActual) ; 
+      comioRey(Tablero,Jugador,X1,Y1,X2,Y2,TableroActual)), 
+      mover(TableroActual,X1,Y1,X2,Y2,NuevoTablero),
       (
-        (verificarVolverComerPeon(NM,X2,Y2),
-        imprimirComerJugador(Jugador),
-        turno(NM,Jugador))
+        (coronar(NuevoTablero,Jugador,X2,Y2,NM), 
+          imprimirMov(Jugador,NM),
+          retract(jugadorActual(Jugador)),
+          retract(tableroActual(Tablero)),     
+          (
+            (verificarVolverComerPeon(NM,X2,Y2),
+             imprimirComerJugador(Jugador),
+             turno(NM,Jugador))
+             ;
+            (not(verificarVolverComerPeon(NM,X2,Y2)), 
+             cambiarJugador(Jugador,NuevoJugador),
+             turno(NM,NuevoJugador))
+          )
+        )
       ;
-        (not(verificarVolverComerPeon(NM,X2,Y2)), 
-        cambiarJugador(Jugador,NuevoJugador),
-        turno(NM,NuevoJugador))
+        (not(coronar(NuevoTablero,Jugador,X2,Y2,NM)),
+          imprimirMov(Jugador,NuevoTablero),
+          retract(jugadorActual(Jugador)),
+          retract(tableroActual(Tablero)),
+          (
+            ((verificarVolverComerPeon(NuevoTablero,X2,Y2) ; 
+              verificarVolverComerRey(NuevoTablero,Jugador,X2,Y2)),
+             imprimirComerJugador(Jugador),
+             turno(NuevoTablero,Jugador))
+             ;
+            ((not(verificarVolverComerPeon(NuevoTablero,X2,Y2)) ; 
+              not(verificarVolverComerRey(NuevoTablero,Jugador,X2,Y2))),
+             cambiarJugador(Jugador,NuevoJugador),
+             turno(NuevoTablero,NuevoJugador))
+          )
+        )
       )
     )
-    ;
-    (not(coronar(NuevoTablero,Jugador,X2,Y2,NM)),
-      imprimirMov(Jugador,NuevoTablero),
-      retract(jugadorActual(Jugador)),
-      retract(tableroActual(Tablero)),
+  ;
+    ((not(comioPeon(Tablero,X1,Y1,X2,Y2,TableroActual)) ; 
+      not(comioRey(Tablero,Jugador,X1,Y1,X2,Y2,TableroActual))), 
+      mover(Tablero,X1,Y1,X2,Y2,NuevoTablero),
       (
-        (verificarVolverComerPeon(NuevoTablero,X2,Y2),
-        imprimirComerJugador(Jugador),
-        turno(NuevoTablero,Jugador))
-      ;
-        (not(verificarVolverComerPeon(NuevoTablero,X2,Y2)),
-        cambiarJugador(Jugador,NuevoJugador),
-        turno(NuevoTablero,NuevoJugador))
+        (coronar(NuevoTablero,Jugador,X2,Y2,NM), 
+          imprimirMov(Jugador,NM),
+          retract(jugadorActual(Jugador)),
+          retract(tableroActual(Tablero)),     
+          cambiarJugador(Jugador,NuevoJugador),
+          turno(NM,NuevoJugador)
+        )
+        ;
+        (not(coronar(NuevoTablero,Jugador,X2,Y2,NM)),
+          imprimirMov(Jugador,NuevoTablero),
+          retract(jugadorActual(Jugador)),
+          retract(tableroActual(Tablero)),
+          cambiarJugador(Jugador,NuevoJugador),
+          turno(NuevoTablero,NuevoJugador)
+        )
       )
     )
   ),!.
-
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% VERIFICACIONES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -163,12 +183,11 @@ verificarJugada(Tablero,Jugador,X1,Y1,X2,Y2) :-
   verificarFicha(Tablero,Jugador,X1,Y1),
   verificarPosicion(Tablero,X1,Y1,X2,Y2),
   (%If es un peon
-    (verificarPeon(Tablero,X1,Y1,X2,Y2); verificarComidaPeon(Tablero,X1,Y1,X2,Y2))
+    (verificarPeon(Tablero,X1,Y1,X2,Y2);
+      verificarComidaPeon(Tablero,X1,Y1,X2,Y2))
   ; %es un rey
     (verificarRey(Tablero,Jugador,X1,Y1,X2,Y2,N)
-    
     %Si N es 1 
-    
     )
   ).
 
@@ -255,7 +274,6 @@ verificarComidaPeon(Tablero,X1,Y1,X2,Y2) :-
     (Elemento3 == 3; Elemento3 == 4),
     X2-X1 =:= 2, Y2-Y1 =:= 2)
   ),!.
-
 
 %
 % Verifica si el peon puede comer otra ficha.
@@ -558,8 +576,6 @@ contarComidasAux(Tablero,P,X1,Y1,X2,Y2,N) :-
    (not(P), (Ficha == 3; Ficha == 4), %Negras
     contarComidasAux(Tablero,P,Xn,Yn,X2,Y2,N2), N is N2+1)),!.
 
-
-
 %
 % Verifica que el peon se encuentra en la posicion para poder coronarse.
 % verificarCoronacion(in Jugador,in X1,in Y1)
@@ -584,7 +600,6 @@ verificarCoronacion(Jugador,X1,_) :-
 % comioPeon(in Tablero,in X1,in Y1,in X2,in Y2,out NM)
 %
 %Fichas Blancas
-%Fichas Blancas   
 comioPeon(Tablero,X1,Y1,X2,Y2,NM) :- 
   get(Tablero,X1,Y1,Elemento1),
   Elemento1 == 3,
@@ -623,30 +638,11 @@ comioPeon(Tablero,X1,Y1,X2,Y2,NM) :-
     X2-X1 =:= 2, Y2-Y1 =:= 2,
     eliminarFicha(Tablero,X3,Y3,NM))
   ),!.  
-
-
-comioPeon(Tablero,X1,Y1,X2,Y2,NM) :- 
-  get(Tablero,X1,Y1,Elemento1),
-  Elemento1 == 3,
-  (
-    %Posiblidad izquierda
-    (X3 is X1-1, Y3 is Y1-1,
-    get(Tablero,X3,Y3,Elemento2),
-    (Elemento2 == 1; Elemento2 == 2),
-    X1-X2 =:= 2, Y1-Y2 =:= 2,
-    eliminarFicha(Tablero,X3,Y3,NM))
-    ;
-    %Posiblidad derecha
-    (X3 is X1-1, Y3 is Y1+1,
-    get(Tablero,X3,Y3,Elemento3),
-    (Elemento3 == 1; Elemento3 == 2),
-    X1-X2 =:= 2, Y2-Y1 =:= 2,
-    eliminarFicha(Tablero,X3,Y3,NM))
-  ),!.  
-
-%Fichas Negras    
-
-%Not done yet
+ 
+%
+% Realiza la accion de cuando un rey come una ficha.
+% comioRey(in Tablero,in Jugador,in X1,in Y1,in X2,in Y2,out NM)
+%
 comioRey(Tablero,Jugador,X1,Y1,X2,Y2,NM) :-
     verificarRey(Tablero,Jugador,X1,Y1,X2,Y2,N),
     (N == 1; N == 3),
@@ -656,8 +652,10 @@ comioRey(Tablero,Jugador,X1,Y1,X2,Y2,NM) :-
     eliminarFicha(Tablero,Xp,Yp,NM),
     !.
     
-    
-%Obtiene la siguiente posicion diagonal
+%
+% Obtiene la siguiente posicion diagonal
+% obtenerSigPosicion(in X1,in Y1,in X2,in Y2,out X3, out Y3)
+%
 obtenerSigPosicion(X1,Y1,X2,Y2,X3,Y3) :-
     X1 < X2, Y1 < Y2,
     X3 is X1+1, Y3 is Y1+1,!.
@@ -674,8 +672,11 @@ obtenerSigPosicion(X1,Y1,X2,Y2,X3,Y3) :-
     X1 > X2, Y1 > Y2,
     X3 is X1-1, Y3 is Y1-1,!.    
 
-%Busca la comida de un rey
-
+%
+% Busca la comida de un rey
+%
+% buscarComidaRey(in Tablero,in X1,in Y1,in X2,in Y2,out X3, out Y3)
+%
 %Retorna la posicion destino
 %Porque no encontro ficha comida
 buscarComidaRey(Tablero,X,Y,X,Y,X,Y).
@@ -686,16 +687,12 @@ buscarComidaRey(Tablero,X1,Y1,X2,Y2,X3,Y3) :-
     Elemento1 =\= 0,
     X3 is X1, Y3 is Y1,!.
 
-%Paso por una casilla vacia,
-%Busca la siguiente    
+%Paso por una casilla vacia, busca la siguiente    
 buscarComidaRey(Tablero,X1,Y1,X2,Y2,X3,Y3) :-
     get(Tablero,X1,Y1,Elemento1),
     Elemento1 == 0,
     obtenerSigPosicion(Tablero,X1,Y1,X2,Y2,Xn,Yn),
     buscarComidaRey(Tablero,Xn,Yn,X2,Y2,X3),!.
-    
-    
-  
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -755,7 +752,6 @@ coronar(Tablero,Jugador,X1,Y1,NM) :-
   verificarCoronacion(Jugador,X1,Y1),
   reemplazarCorona(Tablero,X1,Y1,NM),!.
 
-
 %
 % Realiza el cambio para que un peon se vuelva rey.
 % get(in Tablero,in X1,in Y1,out NM)
@@ -784,7 +780,6 @@ imprimirJugador(Jugador) :-
     not(Jugador),
     write('Juega jugador 2'),nl.
 
-
 %
 % Imprime en pantalla el movimiento realizado por el jugador. 
 %
@@ -801,7 +796,6 @@ imprimirMov(Jugador,Tablero) :-
     nl,write('Movimiento jugador 2:'),nl,
     imprimirTablero(Tablero),nl.
 
-
 %
 % Imprime en pantalla que el jugador puede realizar otro movimiento. 
 %
@@ -815,6 +809,20 @@ imprimirComerJugador(Jugador) :-
 imprimirComerJugador(Jugador) :-
     not(Jugador),
     nl,write('Puede volver a jugar el jugador 2.'),nl.
+
+%
+% Imprime en pantalla el jugador ganador. 
+%
+% imprimirGanador(in Jugador)
+%Fichas Blancas
+imprimirGanador(Jugador) :-
+    Jugador,
+    nl,write('FELICIDADES el ganador es el jugador 1.'),nl.
+
+%Fichas Negras 
+imprimirGanador(Jugador) :-
+    not(Jugador),
+    nl,write('FELICIDADES el ganador es el jugador 2.'),nl.
 
   
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -840,7 +848,6 @@ escribir(4) :- write('>>').
 
 escribir(5) :- write('  ').
 
-
 %
 % Imprime el tablero del juego en pantalla.
 %
@@ -848,7 +855,6 @@ imprimirTablero(Tablero) :-
   nl, write('    1    2    3    4    5    6    7    8'), nl,
   imprimirLinea(1,Tablero),
   write('    1    2    3    4    5    6    7    8'), nl,!.
-
 
 %
 % Imprime las filas de la matriz.
@@ -859,7 +865,6 @@ imprimirLinea(N,[Linea|Cola]) :-
   N2 is N+1,
   imprimirLinea(N2, Cola).
 
-
 %
 % Imprime los elementos de una lista.
 %
@@ -867,23 +872,5 @@ mostrarCaracteres([]).
 mostrarCaracteres([Elemento|Cola]) :-
   write(' |'), escribir(Elemento), write('|'),
   mostrarCaracteres(Cola).
-
-
-%
-%  DEBUGGING BOARD
-%
-
-tableroDebug(
-	[
-	[5,0,5,0,5,0,5,0],
-	[1,5,3,5,1,5,1,5],
-	[5,0,5,1,5,3,5,0],
-	[0,5,0,5,2,5,0,5],
-	[5,0,5,4,5,0,5,0],
-	[0,5,0,5,0,5,1,5],
-	[0,0,5,0,5,0,5,0],
-	[0,5,0,5,0,5,0,5]]).
-
-
 
 % END checkers.pl
