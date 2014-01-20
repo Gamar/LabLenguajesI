@@ -12,7 +12,6 @@
 
 :-use_module(library(lists)).
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% INICIALIZACION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -36,7 +35,6 @@ tableroInicial(
 %
 inicializarJugador(Jugador) :-
     Jugador = true.
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TURNO %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -123,9 +121,11 @@ jugada(X1,Y1,X2,Y2) :-
              imprimirComerJugador(Jugador),
              turno(NM,Jugador))
              ;
-            (not(verificarVolverComerPeon(NM,X2,Y2)), 
+            (not(verificarVolverComerPeon(NM,X2,Y2)),
+             verificarFinJuego(NM,Jugador,Bool), 
              cambiarJugador(Jugador,NuevoJugador),
-             turno(NM,NuevoJugador))
+             ((Bool, turno(NM,NuevoJugador)) ; not(Bool))
+            )
           )
         )
       ;
@@ -141,8 +141,10 @@ jugada(X1,Y1,X2,Y2) :-
              ;
             ((not(verificarVolverComerPeon(NuevoTablero,X2,Y2)) ; 
               not(verificarVolverComerRey(NuevoTablero,Jugador,X2,Y2))),
-             cambiarJugador(Jugador,NuevoJugador),
-             turno(NuevoTablero,NuevoJugador))
+              verificarFinJuego(NuevoTablero,Jugador,Bool), 
+              cambiarJugador(Jugador,NuevoJugador),
+              ((Bool, turno(NuevoTablero,NuevoJugador)) ; not(Bool))
+            )
           )
         )
       )
@@ -327,44 +329,102 @@ verificarVolverComerPeon(Tablero,X1,Y1) :-
     X2-X1 =:= 2, Y2-Y1 =:= 2)
   ),!.
 
+%
+% Verifica la cantidad de fichas de un jugador.
+% verificarCantidadFicha(in Tablero, in Jugador)
+%
+%Fichas Blancas
+verificarCantidadFicha(Tablero,Jugador) :-
+    Jugador,
+    ElemPeon is 3,
+    ElemRey is 4,
+    flatten(Tablero,Y),
+    (pertenece(ElemPeon,Y) ; pertenece(ElemRey,Y)).
 
+%Fichas Negras 
+verificarCantidadFicha(Tablero,Jugador) :-
+    not(Jugador),
+    ElemPeon is 1,
+    ElemRey is 2,
+    flatten(Tablero,Y),
+    (pertenece(ElemPeon,Y) ; pertenece(ElemRey,Y)).
 
-%Obtiene el limite de la primera diagonal
+%
+% Verifica si se finalizo el juego.
+% verificarCantidadFicha(in Tablero, in Jugador, out Bool)
+%
+%Fichas Blancas
+verificarFinJuego(Tablero,Jugador,Bool) :-
+  Jugador,
+  ((verificarCantidadFicha(Tablero,not(Jugador)), Bool = true)
+  ;
+  (not(verificarCantidadFicha(Tablero,not(Jugador))),
+    Bool = false,
+    imprimirGanador(Jugador))
+ ).
+
+%Fichas Negras 
+verificarFinJuego(Tablero,Jugador,Bool) :-
+  not(Jugador),
+  ((verificarCantidadFicha(Tablero,true), Bool = true)
+  ;
+  (not(verificarCantidadFicha(Tablero,true)),
+    Bool = false,
+    imprimirGanador(Jugador))
+ ).
+
+%
+% Obtiene el limite de la primera diagonal
 % |1| | 
 % | |2|
+% obtenerLimiteD1(in X,in Y,out Xl,out Yl)
+%
 obtenerLimiteD1(X,Y,Xl,Yl) :-
   Xn is X + 1,
   Yn is Y + 1,
   ((Xn < 8, Yn < 8, obtenerLimiteD1(Xn,Yn,Xl,Yl));
    ((Xn == 8; Yn == 8), Xl is Xn, Yl is Yn)),!. 
 
-%Obtiene el limite de la segunda diagonal
+%
+% Obtiene el limite de la segunda diagonal
 % | |1| 
 % |2| |
+% obtenerLimiteD2(in X,in Y,out Xl,out Yl)
+%
 obtenerLimiteD2(X,Y,Xl,Yl) :-
   Xn is X + 1,
   Yn is Y - 1,
   ((Xn < 8, Yn > 1, obtenerLimiteD2(Xn,Yn,Xl,Yl));
    ((Xn == 8; Yn == 1), Xl is Xn, Yl is Yn)),!. 
 
-%Obtiene el limite de la tercera diagonal
+%
+% Obtiene el limite de la tercera diagonal
 % | |2| 
 % |1| |   
+% obtenerLimiteD3(in X,in Y,out Xl,out Yl)
+%
 obtenerLimiteD3(X,Y,Xl,Yl) :-
   Xn is X - 1,
   Yn is Y + 1,
   ((Xn > 1, Yn < 8, obtenerLimiteD3(Xn,Yn,Xl,Yl));
    ((Xn == 1; Yn == 8), Xl is Xn, Yl is Yn)),!.    
 
-%Obtiene el limite de la cuarta diagonal
+%
+% Obtiene el limite de la cuarta diagonal
 % |2| | 
 % | |1|
+% obtenerLimiteD4(in X,in Y,out Xl,out Yl)
+%
 obtenerLimiteD4(X,Y,Xl,Yl) :-
   Xn is X - 1,
   Yn is Y - 1,
   ((Xn > 1, Yn > 1, obtenerLimiteD4(Xn,Yn,Xl,Yl));
    ((Xn == 1; Yn == 1), Xl is Xn, Yl is Yn)),!. 
 
+%
+% Verifica si el rey puede volver a comer
+% verificarVolverComerRey(in Tablero,in Jugador,in X1,in Y1)
+%
 verificarVolverComerRey(Tablero,Jugador,X1,Y1) :-
    ((obtenerLimiteD1(X1,Y1,Xl,Yl),
    Xl =\= X1, Yl =\= Y1, 
@@ -383,6 +443,11 @@ verificarVolverComerRey(Tablero,Jugador,X1,Y1) :-
    obtenerSigPosicion(X1,Y1,Xl,Yl,Xn,Yn),
    buscarProxComida(Tablero,Jugador,Xn,Yn,Xl,Yl),!)).
 
+
+%
+% Busca la proxima comida del rey.
+% buscarProxComida(in Tablero,in Jugador,in X1,in Y1,in X2,in Y2)
+%
 %Pasa por una casilla vacia
 buscarProxComida(Tablero,Jugador,X1,Y1,X2,Y2) :-
     X1 =\= X2, Y1=\= Y2, 
@@ -410,7 +475,6 @@ buscarProxComida(Tablero,Jugador,X1,Y1,X2,Y2) :-
     get(Tablero,Xn,Yn,Elemento2),
     Elemento2 == 0, %Sig casilla debe ser vacia
     !.
-
 
 %
 % Verifica que el movimiento es valido para un rey.
@@ -510,10 +574,11 @@ revisarSaltoAux(Tablero,P,X1,Y1,X2,Y2) :-
 
 
 
-%Contar fichas saltadas
-
+%
+% Contar fichas saltadas 
+% contarComidas(in Tablero,in P,in X1,in Y1,in X2,in Y2,in N)
+%
 %Alcanzo la posicion objetivo
-
 contarComidas(Tablero,P,X1,Y1,X2,Y2,N) :-
   X1 < X2, Y1 < Y2,
   Xn is X1+1, Yn is Y1+1, 
@@ -716,6 +781,13 @@ set([C|L],N,X,[C|R]):-
   N1 is N-1, set(L,N1,X,R).
 
 %
+% Verifica si un elemento pertenece a la lista.
+% pertenece(in X,in [X|_])
+%
+pertenece(X,[X|_]).
+pertenece(X,[_|R]):- pertenece(X,R),!. 
+
+%
 % Reemplaza un elemento dentro de una matriz en una posicion dada.
 % reemplazar(in M,in F,in C,in Elemento, out NM)
 %
@@ -737,7 +809,7 @@ mover(Tablero,X1,Y1,X2,Y2,NM) :-
 %
 % Elimina la ficha del tablero.
 % eliminarFicha(in Tablero,in X1,in Y1,out NM)
-
+%
 eliminarFicha(Tablero,X1,Y1,NM) :-
   reemplazar(Tablero,X1,Y1,0,NM).
 

@@ -1,7 +1,5 @@
 COSAS QUE FALTAN POR HACER:
 
-- Contador de fichas -> finalice el juego cuando ya no tenga fichas.
-
 - Inteligencia Artificial.
 
-- Comentarios procedimientos.
+- Ficha trancada, el jugador no puede realizar ningun movimiento.
