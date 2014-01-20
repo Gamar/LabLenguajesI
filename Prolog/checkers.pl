@@ -657,6 +657,70 @@ verificarCoronacion(Jugador,X1,_) :-
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%% VERIFICACION DE MOVIMIENTOS %%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%Caso de un peon
+puedeMover(Tablero,X,Y) :- 
+  verificarVolverComerPeon(Tablero,X,Y),!.
+  
+puedeMover(Tablero,X,Y) :-
+  get(Tablero,X,Y,Elemento1),    
+  Elemento1 == 1, %Negras bajan
+  ((obtenerLimiteD1(X,Y,Xl1,Yl1),
+   obtenerSigPosicion(X,Y,Xl1,Yl1,X1,Y1),
+   get(Tablero,X1,Y1,Ficha1),    
+    Ficha1 == 0);
+  (obtenerLimiteD2(X,Y,Xl2,Yl2),
+   obtenerSigPosicion(X,Y,Xl2,Yl2,X2,Y2),
+   get(Tablero,X2,Y2,Ficha2),    
+    Ficha2 == 0)),!.
+  
+puedeMover(Tablero,X,Y) :-
+  get(Tablero,X,Y,Elemento1),    
+  Elemento1 == 3, %Blancas suben
+  ((obtenerLimiteD3(X,Y,Xl3,Yl3),
+   obtenerSigPosicion(X,Y,Xl3,Yl3,X3,Y3),
+   get(Tablero,X3,Y3,Ficha3),    
+    Ficha3 == 0);
+  (obtenerLimiteD4(X,Y,Xl4,Yl4),
+   obtenerSigPosicion(X,Y,Xl4,Yl4,X4,Y4),
+   get(Tablero,X4,Y4,Ficha4),    
+    Ficha4 == 0)),!.  
+    
+puedeMover(Tablero,X,Y) :- 
+  get(Tablero,X,Y,Elemento1), %Si el rey puede comer
+  ((Elemento1 == 4,
+  verificarVolverComerRey(Tablero,true,X,Y));
+  (Elemento1 == 2,
+  verificarVolverComerRey(Tablero,false,X,Y)
+  )),!.    
+    
+puedeMover(Tablero,X,Y) :-
+  get(Tablero,X,Y,Elemento1),    
+  (Elemento1 == 2; Elemento1 == 4), %Reyes
+  ((obtenerLimiteD1(X,Y,Xl1,Yl1),
+   obtenerSigPosicion(X,Y,Xl1,Yl1,X1,Y1),
+   get(Tablero,X1,Y1,Ficha1),    
+    Ficha1 == 0);
+  (obtenerLimiteD2(X,Y,Xl2,Yl2),
+   obtenerSigPosicion(X,Y,Xl2,Yl2,X2,Y2),
+   get(Tablero,X2,Y2,Ficha2),    
+    Ficha2 == 0);
+  (obtenerLimiteD3(X,Y,Xl3,Yl3),
+   obtenerSigPosicion(X,Y,Xl3,Yl3,X3,Y3),
+   get(Tablero,X3,Y3,Ficha3),    
+    Ficha3 == 0);
+  (obtenerLimiteD4(X,Y,Xl4,Yl4),
+   obtenerSigPosicion(X,Y,Xl4,Yl4,X4,Y4),
+   get(Tablero,X4,Y4,Ficha4),    
+    Ficha4 == 0)),!. 
+    
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% COMER FICHAS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -944,5 +1008,18 @@ mostrarCaracteres([]).
 mostrarCaracteres([Elemento|Cola]) :-
   write(' |'), escribir(Elemento), write('|'),
   mostrarCaracteres(Cola).
+
+
+%% DEBUG
+
+tableroDebug(
+    [[5,3,5,0,5,0,5,0],
+    [3,5,1,5,0,5,1,5],
+    [5,2,5,3,5,3,5,0],
+    [3,5,3,5,2,5,0,5],
+    [5,0,5,0,5,0,5,0],
+    [0,5,0,5,0,5,1,5],
+    [0,0,5,0,5,0,5,0],
+    [0,5,0,5,0,5,0,5]]).
 
 % END checkers.pl
