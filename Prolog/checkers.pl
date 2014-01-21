@@ -661,7 +661,9 @@ verificarCoronacion(Jugador,X1,_) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-%Caso de un peon
+%Verifica que una ficha posea movimientos
+
+%Peones
 puedeMover(Tablero,X,Y) :- 
   verificarVolverComerPeon(Tablero,X,Y),!.
   
@@ -688,7 +690,8 @@ puedeMover(Tablero,X,Y) :-
    obtenerSigPosicion(X,Y,Xl4,Yl4,X4,Y4),
    get(Tablero,X4,Y4,Ficha4),    
     Ficha4 == 0)),!.  
-    
+
+%Reyes    
 puedeMover(Tablero,X,Y) :- 
   get(Tablero,X,Y,Elemento1), %Si el rey puede comer
   ((Elemento1 == 4,
@@ -718,7 +721,17 @@ puedeMover(Tablero,X,Y) :-
     Ficha4 == 0)),!. 
     
 
+%Verifica que un jugador pueda realizar jugadas
+puedeJugar(Jugador,Tablero) :-
+  listaPosicionesFicha(Jugador,Tablero,L),
+   puedeJugarAux(Tablero,L).
 
+puedeJugarAux(Tablero,[X:Y|Z]) :-
+  puedeMover(Tablero,X,Y),!.
+  
+puedeJugarAux(Tablero,[X:Y|Z]) :-
+  not(puedeMover(Tablero,X,Y)),
+  puedeJugarAux(Tablero,Z),!.  
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% COMER FICHAS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1078,13 +1091,13 @@ mostrarCaracteres([Elemento|Cola]) :-
 %% DEBUG
 
 tableroDebug(
-    [[5,3,5,0,5,0,5,0],
-    [3,5,1,5,0,5,1,5],
-    [5,2,5,3,5,3,5,0],
-    [3,5,3,5,2,5,0,5],
+    [[5,3,5,1,5,0,5,0],
+    [1,5,1,5,0,5,0,5],
+    [5,2,5,1,5,0,5,0],
+    [0,5,0,5,2,5,0,5],
     [5,0,5,0,5,0,5,0],
     [0,5,0,5,0,5,1,5],
     [0,0,5,0,5,0,5,0],
-    [0,5,0,5,0,5,0,5]]).
+    [0,5,0,5,1,5,0,5]]).
 
 % END checkers.pl
