@@ -19,15 +19,16 @@
 %
 % Tablero inicial del juego.
 %
-tableroInicial(	
-	[[5,1,5,1,5,1,5,1],
-	[1,5,1,5,1,5,1,5],
-	[5,1,5,1,5,1,5,1],
-	[0,5,0,5,0,5,0,5],
-	[5,0,5,0,5,0,5,0],
-	[3,5,3,5,3,5,3,5],
-	[5,3,5,3,5,3,5,3],
-	[3,5,3,5,3,5,3,5]]).
+
+tableroInicial( 
+  [[5,1,5,1,5,1,5,1],
+  [1,5,1,5,1,5,1,5],
+  [5,1,5,1,5,1,5,1],
+  [1,5,0,5,0,5,0,5],
+  [5,0,5,3,5,0,5,0],
+  [3,5,0,5,3,5,3,5],
+  [5,3,5,3,5,3,5,3],
+  [3,5,3,5,3,5,3,5]]).
 
 %
 % Inicializar el jugador 1.
@@ -426,6 +427,8 @@ obtenerLimiteD4(X,Y,Xl,Yl) :-
 % verificarVolverComerRey(in Tablero,in Jugador,in X1,in Y1)
 %
 verificarVolverComerRey(Tablero,Jugador,X1,Y1) :-
+   get(Tablero,X1,Y1,Elemento1),
+   (Elemento1 == 2; Elemento1 == 4),
    ((obtenerLimiteD1(X1,Y1,Xl,Yl),
    Xl =\= X1, Yl =\= Y1, 
    obtenerSigPosicion(X1,Y1,Xl,Yl,Xn,Yn),
