@@ -829,6 +829,22 @@ buscarComidaRey(Tablero,X1,Y1,X2,Y2,X3,Y3) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %
+% Obtiene la posicion de un elemento en la lista
+% get_pos(in E,in [E|_],out P)
+%
+get_pos(E,[E|_],1).
+get_pos(E,[_|C],P):- get_pos(E,C,P1), P is P1 + 1.
+
+
+%
+% Elimina el ultimo elemento de la lista
+% deleteend(in L,out L1)
+%
+deleteend(L,L1):- addend(_,L1,L),!. 
+addend(X, [], [X]). 
+addend(X, [C|R], [C|R1]):- addend(X, R, R1),!. 
+
+%
 % Obtiene un elemento dentro de una lista en una posicion dada.
 % get(in M,in F,in C,out Elemento)
 %
@@ -896,6 +912,55 @@ reemplazarCorona(Tablero,X1,Y1,NM) :-
   get(Tablero,X1,Y1,Elemento1),
   Elemento2 is Elemento1 + 1, 
   reemplazar(Tablero,X1,Y1,Elemento2,NM).
+
+%
+% Encuentra la posicion de la columna en la que esta una ficha
+% posicion_columnas(in Fila,in NumeroFila,in Elemento,in NuevaLista)
+%
+posicion_columnas(Fila,NumeroFila,Elemento,[]) :-
+  not(get_pos(Elemento,Fila,Posicion)),!.  
+
+posicion_columnas(Fila,NumeroFila,Elemento,[NumeroFila:Posicion|NuevaLista]) :-
+  get_pos(Elemento,Fila,Posicion),
+  set(Fila,Posicion,0,NuevaFila),
+  posicion_columnas(NuevaFila,NumeroFila,Elemento,NuevaLista),!.
+
+%
+% Encuentra la posicion de una ficha en el tablero
+% posicion_columnas(in Fila,in NumeroFila,in Elemento,out NuevaLista)
+%
+lista_posiciones([],[Lista|NuevaLista],NumeroFila,Elemento).
+lista_posiciones([X|Xs],[Lista|NuevaLista],NumeroFila,Elemento) :-  
+  posicion_columnas(X,NumeroFila,Elemento,Lista),
+  NumeroFilaAux is NumeroFila + 1,
+  lista_posiciones(Xs,NuevaLista,NumeroFilaAux,Elemento).
+
+%
+% Encuentra la posicion de las fichas de un jugador
+% listaPosicionesFicha(in Jugador,in Tablero,out Lista)
+%
+%Fichas Blancas
+listaPosicionesFicha(Jugador,Tablero,Lista) :-
+  Jugador,
+  Elem1 is 3, Elem2 is 4,  
+  lista_posiciones(Tablero,L1,1,Elem1), flatten(L1,L2), 
+  deleteend(L2,L3), deleteend(L3,L4),
+  lista_posiciones(Tablero,L5,1,Elem2), flatten(L5,L6), 
+  deleteend(L6,L7), deleteend(L7,L8),
+  append(L4,L8,Lista),!.
+
+%Fichas Negras
+listaPosicionesFicha(Jugador,Tablero,Lista) :-
+  not(Jugador),
+  Elem1 is 1, Elem2 is 2,  
+  lista_posiciones(Tablero,L1,1,Elem1), flatten(L1,L2), 
+  deleteend(L2,L3), deleteend(L3,L4),
+  lista_posiciones(Tablero,L5,1,Elem2), flatten(L5,L6), 
+  deleteend(L6,L7), deleteend(L7,L8),
+  append(L4,L8,Lista),!.
+
+
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
