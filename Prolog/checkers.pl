@@ -21,12 +21,12 @@
 %
 
 tableroInicial( 
-  [[5,1,5,1,5,1,5,1],
-  [1,5,1,5,1,5,1,5],
-  [5,1,5,1,5,1,5,1],
-  [1,5,0,5,0,5,0,5],
-  [5,0,5,3,5,0,5,0],
-  [3,5,0,5,3,5,3,5],
+  [[5,1,5,1,5,0,5,1],
+  [1,5,0,5,1,5,1,5],
+  [5,0,5,1,5,0,5,3],
+  [1,5,3,5,0,5,0,5],
+  [5,0,5,0,5,1,5,0],
+  [3,5,0,5,1,5,3,5],
   [5,3,5,3,5,3,5,3],
   [3,5,3,5,3,5,3,5]]).
 
@@ -77,8 +77,10 @@ jugar :-
   abolish(jugadorActual/1),
   abolish(tableroActual/1),
   abolish(inicializado/1),
-  
+  abolish(fichaAnterior/2),
+
   assert(inicializado(X)),
+  assert(fichaAnterior(-1,-1)),
   write('Desea jugar contra la maquina (S/N)?'),nl,
   repeat,
   get_code(R), (R == 78; R == 83),
@@ -102,12 +104,24 @@ tipoJugador(83,humano,maquina).
 % jugada(in X1,in Y1,in X2,in Y2)
 %
 
+% Revisa si realizo una comida anteriormente
+revisarAnterior(X,Y) :-
+  fichaAnterior(X,Y),
+  X > 0,
+  Y > 0.
+  
 jugada(X1,Y1,X2,Y2) :- 
   inicializado(X),
   jugadorActual(Jugador),
   tableroActual(Tablero),
   verificarJugada(Tablero,Jugador,X1,Y1,X2,Y2),
-
+  ((not(revisarAnterior(X,Y))); %No comio el turno anterior
+  (revisarAnterior(X,Y),  %Comio el turno anterior
+   X =:= X1, Y =:= Y1,    %Debe comer con la misma ficha
+   (comioPeon(Tablero,X1,Y1,X2,Y2,_) ; 
+    comioRey(Tablero,Jugador,X1,Y1,X2,Y2,_)),
+   retract(fichaAnterior(X,Y)))
+  ),
   (
     ((comioPeon(Tablero,X1,Y1,X2,Y2,TableroActual) ; 
       comioRey(Tablero,Jugador,X1,Y1,X2,Y2,TableroActual)), 
@@ -119,7 +133,8 @@ jugada(X1,Y1,X2,Y2) :-
           retract(tableroActual(Tablero)),     
           (
             (verificarVolverComerPeon(NM,X2,Y2),
-             imprimirComerJugador(Jugador),
+             imprimirComerJugador(Jugador), 
+             assert(fichaAnterior(X2,Y2)), %Debe usar esa ficha el sig. turno
              turno(NM,Jugador))
              ;
             (not(verificarVolverComerPeon(NM,X2,Y2)),
@@ -138,6 +153,7 @@ jugada(X1,Y1,X2,Y2) :-
             ((verificarVolverComerPeon(NuevoTablero,X2,Y2) ; 
               verificarVolverComerRey(NuevoTablero,Jugador,X2,Y2)),
              imprimirComerJugador(Jugador),
+             assert(fichaAnterior(X2,Y2)), %Debe usar esa ficah el sig. turno
              turno(NuevoTablero,Jugador))
              ;
             ((not(verificarVolverComerPeon(NuevoTablero,X2,Y2)) ; 
@@ -173,6 +189,8 @@ jugada(X1,Y1,X2,Y2) :-
       )
     )
   ),!.
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% VERIFICACIONES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
