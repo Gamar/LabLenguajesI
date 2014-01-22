@@ -1,5 +1,0 @@
-COSAS QUE FALTAN POR HACER:
-
-- Inteligencia Artificial.
-
-- Ficha trancada, el jugador no puede realizar ningun movimiento.

@@ -11,6 +11,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 :-use_module(library(lists)).
+:- [ia].
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% INICIALIZACION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -23,12 +24,12 @@
 tableroInicial( 
   [[5,1,5,1,5,1,5,1],
   [1,5,1,5,1,5,1,5],
-  [5,1,5,2,5,1,5,3],
-  [0,5,0,5,3,5,1,5],
-  [5,3,5,0,5,0,5,0],
+  [5,1,5,1,5,1,5,1],
   [0,5,0,5,0,5,0,5],
-  [5,3,5,4,5,3,5,0],
-  [3,5,0,5,3,5,3,5]]).
+  [5,0,5,0,5,0,5,0],
+  [3,5,3,5,3,5,3,5],
+  [5,3,5,3,5,3,5,3],
+  [3,5,3,5,3,5,3,5]]).
 
 %
 % Inicializar el jugador 1.
@@ -78,27 +79,24 @@ jugar :-
   abolish(tableroActual/1),
   abolish(inicializado/1),
   abolish(fichaAnterior/2),
+  abolish(tipoJugador/3),
 
   assert(inicializado(X)),
   assert(fichaAnterior(-1,-1)),
   write('Desea jugar contra la maquina (S/N)?'),nl,
   repeat,
-  get_code(R), (R == 78; R == 83),
-  tipoJugador(R,Jug1,Jug2),
+  get_code(R), (R == 78, Jug2 = humano; R == 83, Jug2 = maquina),
+  assert(tipoJugador(R,humano,Jug2)),
   tableroInicial(Tablero),
   inicializarJugador(Blancas),
   nl,write('Comenzo el juego'),nl,
   imprimirTablero(Tablero),nl,
   turno(Tablero,Blancas).
-  
-tipoJugador(78,humano,humano).
-tipoJugador(83,humano,maquina).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% JUGADA %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 
 %
 % Revisa si realizo una comida anteriormente
@@ -110,10 +108,44 @@ revisarAnterior(X,Y) :-
   Y > 0.
 
 %
+% Obtiene el primero de lista de coordenadas
+%
+primero([L1:L2:L3:L4|Ls],L1,L2,L3,L4).
+
+%
 % Ejecucion del juego, realiza el movimiento si es posible
 % jugada(in X1,in Y1,in X2,in Y2)
 %
+% Jugada humano-humano
 jugada(X1,Y1,X2,Y2) :- 
+  tipoJugador(_,humano,X),
+  X == humano,
+  jugada_aux(X1,Y1,X2,Y2),!.
+
+% Jugada humano-maquina
+jugada(X1,Y1,X2,Y2) :- 
+  tipoJugador(_,humano,X),
+  X == maquina,
+
+  %Juega humano
+  jugada_aux(X1,Y1,X2,Y2),
+
+  %Juega maquina
+  jugadorActual(Jugador),
+  tableroActual(Tablero),
+  listarMovimientos(Tablero,Jugador,L),
+  primero(L,L1,L2,L3,L4),
+
+  %Imprime la simulacion del terminal
+  nl,nl,write('?- jugada('),
+  write(L1),write(','),
+  write(L2),write(','),
+  write(L3),write(','),
+  write(L4),write(').'),nl,
+
+  jugada_aux(L1,L2,L3,L4),!.
+
+jugada_aux(X1,Y1,X2,Y2) :-
   inicializado(X),
   jugadorActual(Jugador),
   tableroActual(Tablero),
