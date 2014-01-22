@@ -23,12 +23,12 @@
 tableroInicial( 
   [[5,1,5,1,5,1,5,1],
   [1,5,1,5,1,5,1,5],
-  [5,1,5,1,5,1,5,3],
+  [5,1,5,2,5,1,5,3],
+  [0,5,0,5,3,5,1,5],
+  [5,3,5,0,5,0,5,0],
   [0,5,0,5,0,5,0,5],
-  [5,0,5,0,5,0,5,0],
-  [3,5,3,5,3,5,3,5],
-  [5,3,5,3,5,3,5,3],
-  [3,5,3,5,3,5,3,5]]).
+  [5,3,5,4,5,3,5,0],
+  [3,5,0,5,3,5,3,5]]).
 
 %
 % Inicializar el jugador 1.
@@ -475,16 +475,15 @@ verificarVolverComerRey(Tablero,Jugador,X1,Y1) :-
 %Pasa por una casilla vacia
 buscarProxComida(Tablero,Jugador,X1,Y1,X2,Y2) :-
     X1 =\= X2, Y1=\= Y2, 
-    get(Tablero,X1,Y1,Elemento1),
-    Elemento1 == 0,
+    get(Tablero,X1,Y1,0),
     obtenerSigPosicion(X1,Y1,X2,Y2,Xn,Yn),
     buscarProxComida(Tablero,Jugador,Xn,Yn,X2,Y2),!.
 
 %Blancas debe pasar por una negra    
 buscarProxComida(Tablero,Jugador,X1,Y1,X2,Y2) :-
     X1 =\= X2, Y1=\= Y2, 
-    get(Tablero,X1,Y1,Elemento1),
-    Jugador,(Elemento1 == 1; Elemento1 == 2),
+    (get(Tablero,X1,Y1,1); get(Tablero,X1,Y1,2)),
+    Jugador,
     obtenerSigPosicion(X1,Y1,X2,Y2,Xn,Yn),
     get(Tablero,Xn,Yn,Elemento2),
     Elemento2 == 0, %Sig casilla debe ser vacia
