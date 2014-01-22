@@ -21,12 +21,12 @@
 %
 
 tableroInicial( 
-  [[5,1,5,1,5,0,5,1],
-  [1,5,0,5,1,5,1,5],
-  [5,0,5,1,5,0,5,3],
-  [1,5,3,5,0,5,0,5],
-  [5,0,5,0,5,1,5,0],
-  [3,5,0,5,1,5,3,5],
+  [[5,1,5,1,5,1,5,1],
+  [1,5,1,5,1,5,1,5],
+  [5,1,5,1,5,1,5,3],
+  [0,5,0,5,0,5,0,5],
+  [5,0,5,0,5,0,5,0],
+  [3,5,3,5,3,5,3,5],
   [5,3,5,3,5,3,5,3],
   [3,5,3,5,3,5,3,5]]).
 
@@ -99,17 +99,20 @@ tipoJugador(83,humano,maquina).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% JUGADA %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%
-% Ejecucion del juego, realiza el movimiento si es posible
-% jugada(in X1,in Y1,in X2,in Y2)
-%
 
+%
 % Revisa si realizo una comida anteriormente
+% revisarAnterior(in X,in Y)
+%
 revisarAnterior(X,Y) :-
   fichaAnterior(X,Y),
   X > 0,
   Y > 0.
-  
+
+%
+% Ejecucion del juego, realiza el movimiento si es posible
+% jugada(in X1,in Y1,in X2,in Y2)
+%
 jugada(X1,Y1,X2,Y2) :- 
   inicializado(X),
   jugadorActual(Jugador),
@@ -593,8 +596,6 @@ revisarSaltoAux(Tablero,P,X1,Y1,X2,Y2) :-
   (not(P), Ficha =\= 1, Ficha =\= 2)),
   revisarSaltoAux(Tablero,P,Xn,Yn,X2,Y2).
 
-
-
 %
 % Contar fichas saltadas 
 % contarComidas(in Tablero,in P,in X1,in Y1,in X2,in Y2,in N)
@@ -681,10 +682,11 @@ verificarCoronacion(Jugador,X1,_) :-
 %%%%%%%%%%%%%%%%%%%%%%%%% VERIFICACION DE MOVIMIENTOS %%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-%Verifica que una ficha posea movimientos
-
-%Peones
+%
+% Verifica que una ficha posea movimientos
+% puedeMover(in Tablero,in X,in Y)
+%
+% Peones
 puedeMover(Tablero,X,Y) :- 
   verificarVolverComerPeon(Tablero,X,Y),!.
   
@@ -741,8 +743,10 @@ puedeMover(Tablero,X,Y) :-
    get(Tablero,X4,Y4,Ficha4),    
     Ficha4 == 0)),!. 
     
-
-%Verifica que un jugador pueda realizar jugadas
+%
+% Verifica que un jugador pueda realizar jugadas
+% puedeJugar(in Jugador,in Tablero)
+%
 puedeJugar(Jugador,Tablero) :-
   listaPosicionesFicha(Jugador,Tablero,L),
    puedeJugarAux(Tablero,L).
@@ -837,7 +841,6 @@ obtenerSigPosicion(X1,Y1,X2,Y2,X3,Y3) :-
 
 %
 % Busca la comida de un rey
-%
 % buscarComidaRey(in Tablero,in X1,in Y1,in X2,in Y2,out X3, out Y3)
 %
 %Retorna la posicion destino
@@ -868,7 +871,6 @@ buscarComidaRey(Tablero,X1,Y1,X2,Y2,X3,Y3) :-
 %
 get_pos(E,[E|_],1).
 get_pos(E,[_|C],P):- get_pos(E,C,P1), P is P1 + 1.
-
 
 %
 % Elimina el ultimo elemento de la lista
@@ -992,10 +994,6 @@ listaPosicionesFicha(Jugador,Tablero,Lista) :-
   lista_posiciones(Tablero,L5,1,Elem2), flatten(L5,L6), 
   deleteend(L6,L7), deleteend(L7,L8),
   append(L4,L8,Lista),!.
-
-
-
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% IMPRESIONES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
