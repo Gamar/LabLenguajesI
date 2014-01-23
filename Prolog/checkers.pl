@@ -129,6 +129,12 @@ jugada(X1,Y1,X2,Y2) :-
 
   %Juega humano
   jugada_aux(X1,Y1,X2,Y2),
+  
+  jugadorActual(Jugador),
+  tableroActual(NuevoTablero),
+  
+  (not(verificarVolverComerPeon(NuevoTablero,X2,Y2)) , 
+  not(verificarVolverComerRey(NuevoTablero,Jugador,X2,Y2))),
 
   %Juega maquina
   jugadorActual(Jugador),
@@ -144,6 +150,21 @@ jugada(X1,Y1,X2,Y2) :-
   write(L4),write(').'),nl,
 
   jugada_aux(L1,L2,L3,L4),!.
+
+% Jugada humano-maquina
+jugada(X1,Y1,X2,Y2) :- 
+  tipoJugador(_,humano,X),
+  X == maquina,
+
+  %Juega humano
+  jugada_aux(X1,Y1,X2,Y2),
+  
+  jugadorActual(Jugador),
+  tableroActual(NuevoTablero),
+  
+  (verificarVolverComerPeon(NuevoTablero,X2,Y2) ; 
+   verificarVolverComerRey(NuevoTablero,Jugador,X2,Y2)),!.
+
 
 jugada_aux(X1,Y1,X2,Y2) :-
   inicializado(X),
@@ -191,7 +212,7 @@ jugada_aux(X1,Y1,X2,Y2) :-
              assert(fichaAnterior(X2,Y2)), %Debe usar esa ficah el sig. turno
              turno(NuevoTablero,Jugador))
              ;
-            ((not(verificarVolverComerPeon(NuevoTablero,X2,Y2)) ; 
+            ((not(verificarVolverComerPeon(NuevoTablero,X2,Y2)) , 
               not(verificarVolverComerRey(NuevoTablero,Jugador,X2,Y2))),
               verificarFinJuego(NuevoTablero,Jugador,Bool), 
               cambiarJugador(Jugador,NuevoJugador),
@@ -202,7 +223,7 @@ jugada_aux(X1,Y1,X2,Y2) :-
       )
     )
   ;
-    ((not(comioPeon(Tablero,X1,Y1,X2,Y2,TableroActual)) ; 
+    ((not(comioPeon(Tablero,X1,Y1,X2,Y2,TableroActual)) ,
       not(comioRey(Tablero,Jugador,X1,Y1,X2,Y2,TableroActual))), 
       mover(Tablero,X1,Y1,X2,Y2,NuevoTablero),
       (
