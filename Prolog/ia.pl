@@ -234,4 +234,34 @@ revisarSaltoAux(Tablero,P,X1,Y1,X2,Y2) :-
   (not(P), Ficha =\= 1, Ficha =\= 2)),
   revisarSaltoAux(Tablero,P,Xn,Yn,X2,Y2).
 
+%% Realizacion de Movimientos %%
+realizarMovimiento(Tablero,Jugador,X1,Y1,X2,Y2,NuevoTablero) :-
+  (not(comioPeon(Tablero,X1,Y1,X2,Y2,_)),
+   not(comioRey(Tablero,Jugador,X1,Y1,X2,Y2,_))), 
+   ((mover(Tablero,X1,Y1,X2,Y2,NT2),
+   not(coronar(NT2,Jugador,X2,Y2,_)),
+   mover(Tablero,X1,Y1,X2,Y2,NuevoTablero),!);
+   (mover(Tablero,X1,Y1,X2,Y2,NT2),
+   coronar(NT2,Jugador,X2,Y2,NuevoTablero),!)),
+   !.
+
+realizarMovimiento(Tablero,Jugador,X1,Y1,X2,Y2,NuevoTablero) :-
+  ((comioPeon(Tablero,X1,Y1,X2,Y2,NT),!); 
+   (comioRey(Tablero,Jugador,X1,Y1,X2,Y2,NT),!)), 
+   
+   ((mover(NT,X1,Y1,X2,Y2,NT3),
+   not(coronar(NT3,Jugador,X2,Y2,_)),!);
+   (mover(NT,X1,Y1,X2,Y2,NT2),
+   coronar(NT2,Jugador,X2,Y2,NuevoTablero),!)),
+   
+   (((not(verificarVolverComerPeon(NT3,X2,Y2)) , 
+    not(verificarVolverComerRey(NT3,Jugador,X2,Y2)),
+    NuevoTablero = NT3,!
+    ));
+   (((verificarVolverComerPeon(NT3,X2,Y2)) ;
+   (verificarVolverComerRey(NT3,Jugador,X2,Y2))),
+   listarMovimientosFicha(NT3,X2,Y2,[X3:Y3|Z]),
+   realizarMovimiento(NT3,Jugador,X2,Y2,X3,Y3,NuevoTablero),!)),
+   !.
+
 testProc(X) :- imprimirTablero(X).
