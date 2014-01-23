@@ -22,12 +22,12 @@
 %
 
 tableroInicial( 
-  [[5,1,5,1,5,1,5,1],
-  [0,5,1,5,1,5,1,5],
-  [5,1,5,1,5,1,5,1],
+  [[5,0,5,0,5,0,5,0],
   [0,5,0,5,0,5,0,5],
-  [5,0,5,1,5,0,5,0],
-  [3,5,3,5,3,5,3,5],
+  [5,0,5,0,5,1,5,0],
+  [0,5,0,5,3,5,0,5],
+  [5,0,5,0,5,0,5,0],
+  [3,5,0,5,3,5,3,5],
   [5,3,5,3,5,3,5,3],
   [3,5,3,5,3,5,3,5]]).
 
@@ -149,7 +149,11 @@ jugada(X1,Y1,X2,Y2) :-
   write(L3),write(','),
   write(L4),write(').'),nl,
 
-  jugada_aux(L1,L2,L3,L4),!.
+  realizarMovimiento(Tablero,Jugador,L1,L2,L3,L4,NuevoTablero),
+  retract(tableroActual(Tablero)
+  verificarFinJuego(NuevoTablero,Jugador,Bool), 
+  cambiarJugador(Jugador,NuevoJugador),
+  ((Bool, turno(NuevoTablero,NuevoJugador)) ; not(Bool),!.
 
 % Jugada humano-maquina
 jugada(X1,Y1,X2,Y2) :- 
