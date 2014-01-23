@@ -126,12 +126,13 @@ jugada(X1,Y1,X2,Y2) :-
 jugada(X1,Y1,X2,Y2) :- 
   tipoJugador(_,humano,X),
   X == maquina,
-
-  write('hola'),
+ 
+  jugadorActual(Jugador),
+  
   %Juega humano
   jugada_aux(X1,Y1,X2,Y2),
   
-  jugadorActual(Jugador),
+  
   tableroActual(NuevoTablero),
   
   (not(verificarVolverComerPeon(NuevoTablero,X2,Y2)) , 
@@ -139,25 +140,23 @@ jugada(X1,Y1,X2,Y2) :-
 
   %Juega maquina
   jugadorActual(Jugador2),
-  tableroActual(Tablero),
-  listarMovimientos(Tablero,Jugador2,L),
+  tableroActual(NuevoTablero),
+  listarMovimientos(NuevoTablero,Jugador2,L),
   primero(L,L1,L2,L3,L4),
-  write('hola'),
 
   %Imprime la simulacion del terminal
-  nl,nl,write('?- jugada '),
+  nl,nl,write('?- jugada('),
   write(L1),write(','),
   write(L2),write(','),
   write(L3),write(','),
-  write(L4),write(' .'),nl,
+  write(L4),write(').'),nl,
 
-  write(Jugador2),
-  realizarMovimiento(Tablero,Jugador2,L1,L2,L3,L4,NuevoTablero2),
-  imprimirTablero(NuevoTablero2),
-  
-  retract(tableroActual(Tablero)),
+  realizarMovimiento(NuevoTablero,Jugador2,L1,L2,L3,L4,NuevoTablero2),
+  imprimirTablero(NuevoTablero2),  
+    
+  retract(tableroActual(NuevoTablero)),
   assert(tableroActual(NuevoTablero2)),
-  verificarFinJuego(NuevoTablero2,Jugador,Bool), 
+  verificarFinJuego(NuevoTablero2,Jugador2,Bool), 
   cambiarJugador(Jugador2,NuevoJugador2),
   ((Bool, turno(NuevoTablero2,NuevoJugador2)); not(Bool)),!.
 
